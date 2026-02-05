@@ -135,7 +135,7 @@
         
         .view-display {
             text-align: center;
-            margin-top: 15px;~
+            margin-top: 15px;
         }
         
         .view-display a {
@@ -182,7 +182,8 @@
             width: 1080px;
             height: 1920px;
             position: relative;
-            background-size: cover;
+            background-color: #000;
+            background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
             transform-origin: center center;
@@ -190,19 +191,19 @@
         
         /* Background untuk setiap peserta - menggunakan gambar yang diupload */
         #peserta-1 .display-container {
-            background-image: url('./images/01.png');
+            background-image: url('./01.png');
         }
         
         #peserta-2 .display-container {
-            background-image: url('./images/02.png');
+            background-image: url('./02.png');
         }
         
         #peserta-3 .display-container {
-            background-image: url('./images/03.png');
+            background-image: url('./03.png');
         }
         
         #peserta-4 .display-container {
-            background-image: url('./images/04.png');
+            background-image: url('./04.png');
         }
         
         .nama-box {
@@ -225,6 +226,11 @@
             white-space: nowrap;
             text-overflow: ellipsis;
         }
+        
+        #peserta-1 .nama-box { background: #FF5757; }
+        #peserta-2 .nama-box { background: #4ECDC4; }
+        #peserta-3 .nama-box { background: #51CF66; }
+        #peserta-4 .nama-box { background: #9775FA; }
         
         .score-box {
             position: absolute;
