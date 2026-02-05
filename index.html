@@ -48,6 +48,68 @@
         font-weight: 800;
       }
 
+      /* Global Control Panel */
+      .global-controls {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        text-align: center;
+      }
+
+      .global-controls h2 {
+        color: #667eea;
+        margin-bottom: 20px;
+        font-size: 1.8em;
+        font-weight: 700;
+      }
+
+      .mode-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .mode-button {
+        padding: 15px 40px;
+        border: none;
+        border-radius: 10px;
+        font-size: 18px;
+        font-weight: 700;
+        cursor: pointer;
+        transition:
+          transform 0.1s,
+          box-shadow 0.3s;
+        font-family: "Open Sans", Arial, sans-serif;
+        min-width: 200px;
+      }
+
+      .mode-button.show-score {
+        background: #51cf66;
+        color: white;
+      }
+
+      .mode-button.show-logo {
+        background: #ffa94d;
+        color: white;
+      }
+
+      .mode-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      }
+
+      .mode-button:active {
+        transform: translateY(0);
+      }
+
+      .mode-button.active {
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.3);
+        transform: scale(1.05);
+      }
+
       .control-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -196,7 +258,7 @@
         height: 1920px;
         position: relative;
         background-color: #000;
-        background-size: contain;
+        background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
         transform-origin: center center;
@@ -219,12 +281,15 @@
         background-image: url("./images/04.png");
       }
 
+      /* Logo mode - semua peserta pakai logo yang sama */
+      .display-container.logo-mode {
+        background-image: url("./images/logo.png") !important;
+      }
+
       .nama-box {
         position: absolute;
-        /* top: 460px; */
         left: 39%;
         transform: translateX(-50%) rotate(270deg);
-        /* width: 880px; */
         height: 100%;
         border-radius: 50px;
         display: flex;
@@ -238,14 +303,13 @@
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
+        transition: opacity 0.3s ease;
       }
 
       .score-box {
         position: absolute;
-        /* top: 740px; */
         left: 62%;
         transform: translateX(-50%) rotate(270deg);
-        /* width: 880px; */
         height: 100%;
         border-radius: 50px;
         display: flex;
@@ -255,6 +319,14 @@
         font-weight: 800;
         color: #1e3a8a;
         line-height: 1;
+        transition: opacity 0.3s ease;
+      }
+
+      /* Hide nama and score in logo mode */
+      .display-container.logo-mode .nama-box,
+      .display-container.logo-mode .score-box {
+        opacity: 0;
+        pointer-events: none;
       }
 
       .back-link {
@@ -294,6 +366,27 @@
       .connection-status.disconnected {
         color: #ff6b6b;
       }
+
+      .mode-indicator {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 700;
+        z-index: 1000;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .mode-indicator.score-mode {
+        color: #51cf66;
+      }
+
+      .mode-indicator.logo-mode {
+        color: #ffa94d;
+      }
     </style>
   </head>
   <body>
@@ -305,6 +398,26 @@
     <div id="home" class="home-page active">
       <div class="container">
         <h1>🎮 Kata Netizen Gameshow - Kontrol</h1>
+
+        <!-- Global Display Mode Control -->
+        <div class="global-controls">
+          <h2>🎬 Kontrol Tampilan Display</h2>
+          <div class="mode-buttons">
+            <button
+              class="mode-button show-score active"
+              onclick="setDisplayMode('score')"
+            >
+              📊 Tampilkan Nama & Score
+            </button>
+            <button
+              class="mode-button show-logo"
+              onclick="setDisplayMode('logo')"
+            >
+              🎪 Tampilkan Logo (Break)
+            </button>
+          </div>
+        </div>
+
         <div class="control-grid">
           <!-- Peserta 1 -->
           <div class="peserta-card peserta-1">
@@ -400,8 +513,11 @@
     <!-- Display Pages -->
     <div id="peserta-1" class="display-page">
       <a href="#home" class="back-link">← Kembali</a>
+      <div class="mode-indicator score-mode" id="modeIndicator1">
+        📊 Score Mode
+      </div>
       <div class="display-wrapper">
-        <div class="display-container">
+        <div class="display-container" id="displayContainer1">
           <div class="nama-box" id="display-nama1">Nama Peserta</div>
           <div class="score-box" id="display-score1">0</div>
         </div>
@@ -410,8 +526,11 @@
 
     <div id="peserta-2" class="display-page">
       <a href="#home" class="back-link">← Kembali</a>
+      <div class="mode-indicator score-mode" id="modeIndicator2">
+        📊 Score Mode
+      </div>
       <div class="display-wrapper">
-        <div class="display-container">
+        <div class="display-container" id="displayContainer2">
           <div class="nama-box" id="display-nama2">Nama Peserta</div>
           <div class="score-box" id="display-score2">0</div>
         </div>
@@ -420,8 +539,11 @@
 
     <div id="peserta-3" class="display-page">
       <a href="#home" class="back-link">← Kembali</a>
+      <div class="mode-indicator score-mode" id="modeIndicator3">
+        📊 Score Mode
+      </div>
       <div class="display-wrapper">
-        <div class="display-container">
+        <div class="display-container" id="displayContainer3">
           <div class="nama-box" id="display-nama3">Nama Peserta</div>
           <div class="score-box" id="display-score3">0</div>
         </div>
@@ -430,8 +552,11 @@
 
     <div id="peserta-4" class="display-page">
       <a href="#home" class="back-link">← Kembali</a>
+      <div class="mode-indicator score-mode" id="modeIndicator4">
+        📊 Score Mode
+      </div>
       <div class="display-wrapper">
-        <div class="display-container">
+        <div class="display-container" id="displayContainer4">
           <div class="nama-box" id="display-nama4">Nama Peserta</div>
           <div class="score-box" id="display-score4">0</div>
         </div>
@@ -449,7 +574,6 @@
         get,
       } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-      // TODO: Ganti dengan config Firebase Anda
       const firebaseConfig = {
         apiKey: "AIzaSyDGP4VtoiurEyAdbazZ5hNHFZ3hzcVJz_E",
         authDomain: "kata-netizen.firebaseapp.com",
@@ -481,6 +605,51 @@
       });
 
       let isUpdatingFromFirebase = false;
+
+      // Listen to display mode changes
+      const displayModeRef = ref(database, "displayMode");
+      onValue(displayModeRef, (snapshot) => {
+        const mode = snapshot.val() || "score";
+        updateDisplayMode(mode);
+      });
+
+      // Update display mode on all screens
+      function updateDisplayMode(mode) {
+        for (let i = 1; i <= 4; i++) {
+          const container = document.getElementById(`displayContainer${i}`);
+          const indicator = document.getElementById(`modeIndicator${i}`);
+
+          if (mode === "logo") {
+            container.classList.add("logo-mode");
+            indicator.textContent = "🎪 Logo Mode";
+            indicator.className = "mode-indicator logo-mode";
+          } else {
+            container.classList.remove("logo-mode");
+            indicator.textContent = "📊 Score Mode";
+            indicator.className = "mode-indicator score-mode";
+          }
+        }
+
+        // Update button states in control panel
+        document.querySelectorAll(".mode-button").forEach((btn) => {
+          btn.classList.remove("active");
+        });
+        if (mode === "logo") {
+          document
+            .querySelector(".mode-button.show-logo")
+            .classList.add("active");
+        } else {
+          document
+            .querySelector(".mode-button.show-score")
+            .classList.add("active");
+        }
+      }
+
+      // Set display mode
+      window.setDisplayMode = async function (mode) {
+        const modeRef = ref(database, "displayMode");
+        await set(modeRef, mode);
+      };
 
       // Load data dari Firebase
       async function loadData() {
