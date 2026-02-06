@@ -245,8 +245,8 @@
       }
 
       .display-wrapper {
-        width: 1920px;
-        height: 1080px;
+        width: 100%;
+        height: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -254,8 +254,8 @@
       }
 
       .display-container {
-        width: 1920px;
-        height: 1080px;
+        width: 100%;
+        height: 100%;
         position: relative;
         background-color: #000;
         background-size: contain;
@@ -291,7 +291,7 @@
         position: absolute;
         top: 0;
         left: 0;
-        width: 1080px;
+        width: 100%;
         height: 100%;
         transform: rotate(270deg);
         display: none;
@@ -299,12 +299,12 @@
       }
 
       .display-container.logo-mode .video-overlay {
-        display: block;
+        display: relative;
       }
 
       .video-overlay video {
-        width: 1080px;
-        height: 1920px;
+        width: 100%;
+        height: 100%;
         object-fit: contain;
       }
 
