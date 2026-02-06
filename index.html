@@ -245,8 +245,8 @@
       }
 
       .display-wrapper {
-        width: 100%;
-        height: 100%;
+        width: 1920px;
+        height: 1080px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -254,11 +254,11 @@
       }
 
       .display-container {
-        width: 100%;
-        height: 1920px;
+        width: 1920px;
+        height: 1080px;
         position: relative;
         background-color: #000;
-        background-size: cover;
+        background-size: contain;
         background-position: center;
         background-repeat: no-repeat;
         transform-origin: center center;
@@ -610,45 +610,70 @@
       const displayModeRef = ref(database, "displayMode");
       onValue(displayModeRef, (snapshot) => {
         const mode = snapshot.val() || "score";
+        console.log("Firebase displayMode value:", mode);
         updateDisplayMode(mode);
       });
 
       // Update display mode on all screens
       function updateDisplayMode(mode) {
+        console.log("updateDisplayMode called with mode:", mode);
+
         for (let i = 1; i <= 4; i++) {
           const container = document.getElementById(`displayContainer${i}`);
           const indicator = document.getElementById(`modeIndicator${i}`);
 
-          if (mode === "logo") {
-            container.classList.add("logo-mode");
-            indicator.textContent = "🎪 Logo Mode";
-            indicator.className = "mode-indicator logo-mode";
+          if (container) {
+            if (mode === "logo") {
+              container.classList.add("logo-mode");
+              console.log(`Container ${i} set to logo mode`);
+            } else {
+              container.classList.remove("logo-mode");
+              console.log(`Container ${i} set to score mode`);
+            }
           } else {
-            container.classList.remove("logo-mode");
-            indicator.textContent = "📊 Score Mode";
-            indicator.className = "mode-indicator score-mode";
+            console.log(`Container ${i} not found`);
+          }
+
+          if (indicator) {
+            if (mode === "logo") {
+              indicator.textContent = "🎪 Logo Mode";
+              indicator.className = "mode-indicator logo-mode";
+            } else {
+              indicator.textContent = "📊 Score Mode";
+              indicator.className = "mode-indicator score-mode";
+            }
+          } else {
+            console.log(`Indicator ${i} not found`);
           }
         }
 
         // Update button states in control panel
-        document.querySelectorAll(".mode-button").forEach((btn) => {
-          btn.classList.remove("active");
-        });
-        if (mode === "logo") {
-          document
-            .querySelector(".mode-button.show-logo")
-            .classList.add("active");
-        } else {
-          document
-            .querySelector(".mode-button.show-score")
-            .classList.add("active");
+        const buttons = document.querySelectorAll(".mode-button");
+        if (buttons.length > 0) {
+          buttons.forEach((btn) => {
+            btn.classList.remove("active");
+          });
+
+          if (mode === "logo") {
+            const logoBtn = document.querySelector(".mode-button.show-logo");
+            if (logoBtn) logoBtn.classList.add("active");
+          } else {
+            const scoreBtn = document.querySelector(".mode-button.show-score");
+            if (scoreBtn) scoreBtn.classList.add("active");
+          }
         }
       }
 
       // Set display mode
       window.setDisplayMode = async function (mode) {
-        const modeRef = ref(database, "displayMode");
-        await set(modeRef, mode);
+        console.log("setDisplayMode called with:", mode);
+        try {
+          const modeRef = ref(database, "displayMode");
+          await set(modeRef, mode);
+          console.log("Display mode saved to Firebase:", mode);
+        } catch (error) {
+          console.error("Error setting display mode:", error);
+        }
       };
 
       // Load data dari Firebase
