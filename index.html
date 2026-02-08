@@ -79,9 +79,7 @@
         font-size: 18px;
         font-weight: 700;
         cursor: pointer;
-        transition:
-          transform 0.1s,
-          box-shadow 0.3s;
+        transition: transform 0.1s, box-shadow 0.3s;
         font-family: "Open Sans", Arial, sans-serif;
         min-width: 200px;
       }
@@ -93,6 +91,11 @@
 
       .mode-button.show-logo {
         background: #ffa94d;
+        color: white;
+      }
+
+      .mode-button.show-video {
+        background: #ff6b6b;
         color: white;
       }
 
@@ -281,14 +284,21 @@
         background-image: url("./images/04.png");
       }
 
-      /* Logo mode - semua peserta pakai logo yang sama */
+      /* Logo mode - gambar statis */
       .display-container.logo-mode {
         background-image: url("./images/logo.png") !important;
+      }
+
+      /* Video mode - video break */
+      .display-container.video-mode {
+        background-image: none !important;
       }
 
       /* Video overlay for break mode */
       .video-overlay {
         position: absolute;
+        top: 0;
+        left: 0;
         width: 100%;
         height: 900px;
         transform: translateY(-22%) rotate(270deg);
@@ -296,7 +306,7 @@
         z-index: 10;
       }
 
-      .display-container.logo-mode .video-overlay {
+      .display-container.video-mode .video-overlay {
         display: block;
       }
 
@@ -342,9 +352,11 @@
         transition: opacity 0.3s ease;
       }
 
-      /* Hide nama and score in logo mode */
+      /* Hide nama and score in logo mode and video mode */
       .display-container.logo-mode .nama-box,
-      .display-container.logo-mode .score-box {
+      .display-container.logo-mode .score-box,
+      .display-container.video-mode .nama-box,
+      .display-container.video-mode .score-box {
         opacity: 0;
         pointer-events: none;
       }
@@ -407,6 +419,10 @@
       .mode-indicator.logo-mode {
         color: #ffa94d;
       }
+
+      .mode-indicator.video-mode {
+        color: #ff6b6b;
+      }
     </style>
   </head>
   <body>
@@ -433,7 +449,13 @@
               class="mode-button show-logo"
               onclick="setDisplayMode('logo')"
             >
-              🎪 Tampilkan Logo (Break)
+              🖼️ Break Gambar
+            </button>
+            <button
+              class="mode-button show-video"
+              onclick="setDisplayMode('video')"
+            >
+              🎬 Break Video
             </button>
           </div>
         </div>
@@ -540,8 +562,8 @@
         <div class="display-container" id="displayContainer1">
           <div class="video-overlay">
             <video id="breakVideo1" loop muted playsinline>
-              <source src="./images/logo.mp4" type="video/mp4" />
-              <source src="./images/logo.webm" type="video/webm" />
+              <source src="./images/logo.mp4" type="video/mp4">
+              <source src="./images/logo.webm" type="video/webm">
             </video>
           </div>
           <div class="nama-box" id="display-nama1">Nama Peserta</div>
@@ -559,8 +581,8 @@
         <div class="display-container" id="displayContainer2">
           <div class="video-overlay">
             <video id="breakVideo2" loop muted playsinline>
-              <source src="./images/logo.mp4" type="video/mp4" />
-              <source src="./images/logo.webm" type="video/webm" />
+              <source src="./images/logo.mp4" type="video/mp4">
+              <source src="./images/logo.webm" type="video/webm">
             </video>
           </div>
           <div class="nama-box" id="display-nama2">Nama Peserta</div>
@@ -578,8 +600,8 @@
         <div class="display-container" id="displayContainer3">
           <div class="video-overlay">
             <video id="breakVideo3" loop muted playsinline>
-              <source src="./images/logo.mp4" type="video/mp4" />
-              <source src="./images/logo.webm" type="video/webm" />
+              <source src="./images/logo.mp4" type="video/mp4">
+              <source src="./images/logo.webm" type="video/webm">
             </video>
           </div>
           <div class="nama-box" id="display-nama3">Nama Peserta</div>
@@ -597,8 +619,8 @@
         <div class="display-container" id="displayContainer4">
           <div class="video-overlay">
             <video id="breakVideo4" loop muted playsinline>
-              <source src="./images/logo.mp4" type="video/mp4" />
-              <source src="./images/logo.webm" type="video/webm" />
+              <source src="./images/logo.mp4" type="video/mp4">
+              <source src="./images/logo.webm" type="video/webm">
             </video>
           </div>
           <div class="nama-box" id="display-nama4">Nama Peserta</div>
@@ -661,20 +683,32 @@
       // Update display mode on all screens
       function updateDisplayMode(mode) {
         console.log("updateDisplayMode called with mode:", mode);
-
+        
         for (let i = 1; i <= 4; i++) {
           const container = document.getElementById(`displayContainer${i}`);
           const indicator = document.getElementById(`modeIndicator${i}`);
           const video = document.getElementById(`breakVideo${i}`);
 
           if (container) {
+            // Remove all mode classes first
+            container.classList.remove("logo-mode", "video-mode");
+            
             if (mode === "logo") {
               container.classList.add("logo-mode");
               console.log(`Container ${i} set to logo mode`);
-
-              // Play video when entering logo mode
+              
+              // Pause video in logo mode
               if (video) {
-                video.play().catch((err) => {
+                video.pause();
+                video.currentTime = 0;
+              }
+            } else if (mode === "video") {
+              container.classList.add("video-mode");
+              console.log(`Container ${i} set to video mode`);
+              
+              // Play video when entering video mode
+              if (video) {
+                video.play().catch(err => {
                   console.log(`Video ${i} autoplay blocked:`, err);
                   // If autoplay is blocked, try to play with sound on
                   video.muted = true;
@@ -682,10 +716,9 @@
                 });
               }
             } else {
-              container.classList.remove("logo-mode");
               console.log(`Container ${i} set to score mode`);
-
-              // Pause and reset video when leaving logo mode
+              
+              // Pause and reset video when leaving video mode
               if (video) {
                 video.pause();
                 video.currentTime = 0;
@@ -697,8 +730,11 @@
 
           if (indicator) {
             if (mode === "logo") {
-              indicator.textContent = "🎪 Logo Mode";
+              indicator.textContent = "🖼️ Logo Mode";
               indicator.className = "mode-indicator logo-mode";
+            } else if (mode === "video") {
+              indicator.textContent = "🎬 Video Mode";
+              indicator.className = "mode-indicator video-mode";
             } else {
               indicator.textContent = "📊 Score Mode";
               indicator.className = "mode-indicator score-mode";
@@ -714,10 +750,13 @@
           buttons.forEach((btn) => {
             btn.classList.remove("active");
           });
-
+          
           if (mode === "logo") {
             const logoBtn = document.querySelector(".mode-button.show-logo");
             if (logoBtn) logoBtn.classList.add("active");
+          } else if (mode === "video") {
+            const videoBtn = document.querySelector(".mode-button.show-video");
+            if (videoBtn) videoBtn.classList.add("active");
           } else {
             const scoreBtn = document.querySelector(".mode-button.show-score");
             if (scoreBtn) scoreBtn.classList.add("active");
