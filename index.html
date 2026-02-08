@@ -113,6 +113,51 @@
         transform: scale(1.05);
       }
 
+      .btn-sync {
+        background: #667eea;
+        color: white;
+        padding: 20px 60px;
+        border: none;
+        border-radius: 12px;
+        font-size: 24px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: transform 0.1s, box-shadow 0.3s;
+        font-family: "Open Sans", Arial, sans-serif;
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+      }
+
+      .btn-sync:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(102, 126, 234, 0.6);
+      }
+
+      .btn-sync:active {
+        transform: translateY(0);
+      }
+
+      .sync-panel {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        text-align: center;
+      }
+
+      .sync-panel h2 {
+        color: #667eea;
+        margin-bottom: 15px;
+        font-size: 1.5em;
+        font-weight: 700;
+      }
+
+      .sync-panel p {
+        color: #666;
+        margin-bottom: 20px;
+        font-size: 1em;
+      }
+
       .control-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -460,6 +505,14 @@
           </div>
         </div>
 
+        <!-- Sync Score Panel -->
+        <div class="sync-panel">
+          <h2>🔄 Sinkronisasi Score ke Display</h2>
+          <button class="btn-sync" onclick="syncAllScores()">
+            🚀 SYNC SCORE KE SEMUA DISPLAY
+          </button>
+        </div>
+
         <div class="control-grid">
           <!-- Peserta 1 -->
           <div class="peserta-card peserta-1">
@@ -780,9 +833,9 @@
       async function loadData() {
         for (let i = 1; i <= 4; i++) {
           const namaRef = ref(database, `peserta${i}/nama`);
-          const scoreRef = ref(database, `peserta${i}/score`);
+          const scoreDisplayRef = ref(database, `peserta${i}/scoreDisplay`);
 
-          // Listen untuk perubahan nama
+          // Listen untuk perubahan nama (real-time)
           onValue(namaRef, (snapshot) => {
             isUpdatingFromFirebase = true;
             const nama = snapshot.val() || "";
@@ -792,11 +845,11 @@
             isUpdatingFromFirebase = false;
           });
 
-          // Listen untuk perubahan score
-          onValue(scoreRef, (snapshot) => {
+          // Listen untuk perubahan scoreDisplay (yang tampil di TV)
+          onValue(scoreDisplayRef, (snapshot) => {
             isUpdatingFromFirebase = true;
             const score = snapshot.val() || 0;
-            document.getElementById(`score${i}`).value = score;
+            // Hanya update display, tidak update input kontrol
             document.getElementById(`display-score${i}`).textContent = score;
             isUpdatingFromFirebase = false;
           });
@@ -811,14 +864,32 @@
         await set(dataRef, value);
       }
 
-      // Update score
+      // Update score (hanya update local, tidak sync ke display)
       window.changeScore = async function (peserta, change) {
         const scoreInput = document.getElementById(`score${peserta}`);
         let currentScore = parseInt(scoreInput.value) || 0;
         currentScore += change;
         scoreInput.value = currentScore;
+        // Tidak save ke Firebase, tunggu tombol sync diklik
+      };
 
-        await saveData(peserta, "score", currentScore);
+      // Sync all scores to display
+      window.syncAllScores = async function () {
+        console.log("Syncing all scores to display...");
+        
+        for (let i = 1; i <= 4; i++) {
+          const scoreInput = document.getElementById(`score${i}`);
+          const score = parseInt(scoreInput.value) || 0;
+          
+          // Save ke scoreDisplay (yang ditampilkan di TV)
+          const scoreDisplayRef = ref(database, `peserta${i}/scoreDisplay`);
+          await set(scoreDisplayRef, score);
+          
+          console.log(`Peserta ${i} score synced: ${score}`);
+        }
+        
+        console.log("All scores synced successfully!");
+        alert("✅ Score berhasil di-sync ke semua display!");
       };
 
       // Event listeners untuk input nama dan score
@@ -830,11 +901,12 @@
             saveData(i, "nama", nama);
           });
 
+        // Score input tidak auto-save, hanya update local
         document
           .getElementById(`score${i}`)
           .addEventListener("input", function (e) {
-            const score = parseInt(e.target.value) || 0;
-            saveData(i, "score", score);
+            // Tidak langsung save ke Firebase
+            console.log(`Score ${i} changed to:`, e.target.value);
           });
       }
 
